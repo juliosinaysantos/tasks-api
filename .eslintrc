@@ -16,7 +16,6 @@
     "sourceType": "module"
   },
   "rules": {
-    "max-len": 1,
     "prettier/prettier": 2
   }
 }
