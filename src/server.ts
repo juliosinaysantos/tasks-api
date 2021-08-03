@@ -3,9 +3,13 @@ import { ApolloServerPluginLandingPageGraphQLPlayground } from 'apollo-server-co
 
 import { typeDefs } from './schema';
 import { resolvers } from './resolvers';
+import { TasksAPI } from './tasks/tasksAPI';
 
 export const server = new ApolloServer({
   typeDefs,
   resolvers,
   plugins: [ApolloServerPluginLandingPageGraphQLPlayground],
+  dataSources: () => ({
+    tasksAPI: new TasksAPI(),
+  }),
 });
