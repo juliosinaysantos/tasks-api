@@ -1,10 +1,12 @@
 import { Task } from '@prisma/client';
 import { DataSource } from 'apollo-datasource';
 import { prisma } from '../../prisma';
+import { IContext } from '../interfaces';
 
 export interface ITaskCreateInput {
   content: string;
   completed?: boolean;
+  userId: number;
 }
 
 export interface ITaskUpdateInput {
@@ -13,12 +15,29 @@ export interface ITaskUpdateInput {
 }
 
 export class TasksAPI extends DataSource {
+  private context: IContext | null;
+
+  public constructor() {
+    super();
+    this.context = null;
+  }
+
+  public initialize({ context }: { context: IContext }): void {
+    this.context = context;
+  }
+
   public async getAllTasks(): Promise<Task[]> {
-    return await prisma.task.findMany();
+    const userId = this.context?.user.id;
+    return await prisma.task.findMany({ where: { userId } });
   }
 
   public async getTaskById(taskId: string): Promise<Task | null> {
-    return await prisma.task.findUnique({ where: { id: taskId } });
+    const userId = this.context?.user.id;
+    return await prisma.task.findFirst({
+      where: {
+        AND: [{ id: taskId }, { userId }],
+      },
+    });
   }
 
   public async createTask(taskInput: ITaskCreateInput): Promise<Task> {

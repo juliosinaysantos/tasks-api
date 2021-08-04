@@ -1,4 +1,5 @@
 import { Task } from '@prisma/client';
+import { AuthenticationError } from 'apollo-server';
 import { IContext } from '../../../interfaces';
 import { ITaskCreateInput, ITaskUpdateInput } from '../../tasksAPI';
 
@@ -8,13 +9,18 @@ export const taskMutationResolvers = {
     {
       taskInput: { content, completed = false },
     }: { taskInput: ITaskCreateInput },
-    { dataSources }: IContext,
+    { dataSources, user }: IContext,
   ): Promise<Task | null> => {
     try {
+      if (!user) {
+        throw new AuthenticationError('UnAuthenticated');
+      }
+      console.log(user);
       // TODO: implement validation input.
-      const createdTask = dataSources.tasksAPI.createTask({
+      const createdTask = await dataSources.tasksAPI.createTask({
         content,
         completed,
+        userId: user.id,
       });
       return createdTask;
     } catch (e) {
@@ -29,12 +35,15 @@ export const taskMutationResolvers = {
       taskId,
       taskInput: { content, completed },
     }: { taskId: string; taskInput: ITaskUpdateInput },
-    { dataSources }: IContext,
+    { dataSources, user }: IContext,
   ): Promise<Task | null> => {
     try {
+      if (!user) {
+        throw new AuthenticationError('UnAuthenticated');
+      }
       // TODO: ensure the task exists.
       // TODO: implement validation input.
-      const updatedTask = dataSources.tasksAPI.updateTask(taskId, {
+      const updatedTask = await dataSources.tasksAPI.updateTask(taskId, {
         content,
         completed,
       });
